@@ -1,8 +1,16 @@
+import os
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
+from supabase import Client, create_client
+
+from dotenv import load_dotenv
+
 import uvicorn
+
+load_dotenv()
+
 
 app = FastAPI()
 
@@ -24,7 +32,20 @@ def send(
     websiteUrl: str = Form(...),
     message: str = Form(...),
 ):
-    return name, email, phoneNumber, websiteUrl, message
+    url: str = os.environ.get("SUPABASE_URL")
+    key: str = os.environ.get("SUPABASE_KEY")
+    supabase: Client = create_client(url, key)
+    tbl = supabase.table("imprinting")
+    tbl.insert(
+        {
+            "name": name,
+            "email": email,
+            "phoneNumber": phoneNumber,
+            "websiteUrl": websiteUrl,
+            "message": message,
+        }
+    ).execute()
+    return "OK"
 
 
 # ----------------------------------------------------------------
