@@ -1,7 +1,8 @@
 import os
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+
 
 from supabase import Client, create_client
 
@@ -24,25 +25,27 @@ app.add_middleware(
 )
 
 
+class dados(BaseModel):
+    name: str
+    email: str
+    phoneNumber: str
+    websiteUrl: str
+    message: str
+
+
 @app.post("/send")
-def send(
-    name: str = Form(...),
-    email: str = Form(...),
-    phoneNumber: str = Form(...),
-    websiteUrl: str = Form(...),
-    message: str = Form(...),
-):
+def send(form: dados):
     url: str = os.environ.get("SUPABASE_URL")
     key: str = os.environ.get("SUPABASE_KEY")
     supabase: Client = create_client(url, key)
     tbl = supabase.table("imprinting")
     tbl.insert(
         {
-            "name": name,
-            "email": email,
-            "phoneNumber": phoneNumber,
-            "websiteUrl": websiteUrl,
-            "message": message,
+            "name": form.name,
+            "email": form.email,
+            "phoneNumber": form.phoneNumber,
+            "websiteUrl": form.websiteUrl,
+            "message": form.message,
         }
     ).execute()
     return "OK"
